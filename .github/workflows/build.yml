@@ -101,11 +101,21 @@ jobs:
           path: release/MARX_SECRET_Entrega
           if-no-files-found: error
 
-      - name: Publicar versão (tags v*)
-        if: startsWith(github.ref, 'refs/tags/v')
+      - name: Versão do aplicativo
+        id: versao
+        shell: pwsh
+        run: |
+          $v = (Select-String -Path marx_secret\__init__.py -Pattern '__version__ = "(.+)"').Matches[0].Groups[1].Value
+          "tag=v$v" >> $env:GITHUB_OUTPUT
+
+      - name: Publicar versão (branch principal ou tags v*)
+        if: startsWith(github.ref, 'refs/tags/v') || (github.event_name != 'pull_request' && github.ref_name == github.event.repository.default_branch)
         uses: softprops/action-gh-release@v2
         with:
-          name: MARX SECRET Professional ${{ github.ref_name }}
+          tag_name: ${{ startsWith(github.ref, 'refs/tags/v') && github.ref_name || steps.versao.outputs.tag }}
+          target_commitish: ${{ github.sha }}
+          make_latest: true
+          name: MARX SECRET Professional ${{ startsWith(github.ref, 'refs/tags/v') && github.ref_name || steps.versao.outputs.tag }}
           body: |
             **MARX SECRET Professional** – PRIVACIDADE. SEGURANÇA. INTELIGÊNCIA.
 
