@@ -72,6 +72,9 @@ def main(argv: list[str] | None = None) -> int:
 
             ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(
                 "MarxSecret.Professional.1")
+            # Mutex usado pelo instalador para detectar o aplicativo em execução
+            _mutex = ctypes.windll.kernel32.CreateMutexW(None, False,  # noqa: F841
+                                                         "MarxSecretProfessionalMutex")
         except Exception:  # noqa: BLE001
             pass
     app = QApplication.instance() or QApplication(sys.argv)

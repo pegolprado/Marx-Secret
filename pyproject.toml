@@ -1,0 +1,31 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "marx-secret"
+version = "1.0.0"
+description = "MARX SECRET Professional – esteganografia digital, criptografia e análise de imagens"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "PySide6-Essentials>=6.8",
+    "Pillow>=10.0",
+    "numpy>=1.26",
+    "cryptography>=42",
+    "argon2-cffi>=23.1",
+    "reportlab>=4.0",
+]
+
+[project.gui-scripts]
+marx-secret = "marx_secret.app:main"
+
+[tool.setuptools.packages.find]
+include = ["marx_secret*"]
+
+[tool.setuptools.package-data]
+marx_secret = ["assets/*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+qt_api = "pyside6"

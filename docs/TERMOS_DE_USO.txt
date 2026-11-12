@@ -1,0 +1,28 @@
+MARX SECRET Professional – Termos de Uso
+=========================================
+
+Copyright (c) 2026 MARX SECRET. Todos os direitos reservados.
+
+1. O MARX SECRET é um software de esteganografia, criptografia e análise de
+   imagens que funciona exclusivamente de forma local e offline. Nenhum dado,
+   senha ou conteúdo é enviado a servidores externos.
+
+2. O usuário é o único responsável pela guarda de suas senhas. Por projeto, o
+   MARX SECRET NÃO armazena senhas e NÃO possui mecanismo de recuperação: um
+   conteúdo protegido cuja senha foi esquecida não pode ser recuperado.
+
+3. Imagens com conteúdo oculto devem ser mantidas em formato sem perdas (PNG,
+   BMP ou TIFF). Recompressão, redimensionamento, edição ou envio por serviços
+   que convertem imagens (redes sociais, mensageiros) destroem o conteúdo oculto.
+
+4. A exclusão segura sobrescreve os dados antes de removê-los. Em unidades SSD,
+   sistemas com journaling, cópias de sombra ou sincronização em nuvem, a
+   eliminação física de todas as cópias não pode ser garantida.
+
+5. O usuário compromete-se a utilizar o software em conformidade com a
+   legislação aplicável, incluindo a Lei Geral de Proteção de Dados (LGPD).
+
+6. O software é fornecido "no estado em que se encontra", sem garantias de
+   qualquer natureza, dentro dos limites permitidos pela lei.
+
+Ao prosseguir com a instalação você declara concordar com estes termos.
