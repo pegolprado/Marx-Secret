@@ -338,8 +338,11 @@ def analysis_report_pdf(result: AnalysisResult, path: str | Path,
             ("Qui-quadrado global", f"{result.chi_square_overall * 100:.2f}%".replace(".", ",")),
             ("Assinatura MARX SECRET", "Detectada" if sig.detected else "Não detectada"),
         ] + ([
-            ("Bits por canal", str(sig.bits_per_channel)),
-            ("Distribuição", "Dispersa (pseudoaleatória)" if sig.scattered else "Sequencial"),
+            ("Modo", "Capacidade estendida (blocos PNG)" if sig.mode == "estendido"
+             else "LSB nos pixels"),
+            ("Bits por canal", str(sig.bits_per_channel) if sig.mode == "lsb" else "–"),
+            ("Distribuição", "–" if sig.mode == "estendido" else
+             "Dispersa (pseudoaleatória)" if sig.scattered else "Sequencial"),
             ("Bytes armazenados", _fmt_bytes(sig.stored_bytes or 0)),
             ("Criptografia", "AES-256-GCM" if sig.encrypted else "Não"
              if sig.encrypted is not None else "Indeterminado"),

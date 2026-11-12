@@ -440,6 +440,19 @@ class CapacityMeter(QWidget):
         self.text.setText(f"{fmt_bytes(required)} de {fmt_bytes(capacity)} "
                           f"({pct:.1f}%) · {status}".replace(".", ",", 1))
 
+    def set_extended(self, required: int, hard_max: int, configured_max: int) -> None:
+        """Capacidade estendida: limite dado pelo tamanho máximo de conteúdo."""
+        limit = min(hard_max, configured_max)
+        pct = required / limit * 100 if limit else 100
+        self.bar.setValue(int(min(pct, 100) * 10))
+        level = "ok" if pct <= 100 else "danger"
+        self.bar.setProperty("level", level)
+        self.bar.style().unpolish(self.bar)
+        self.bar.style().polish(self.bar)
+        status = ("excede o limite configurado" if pct > 100
+                  else "capacidade estendida (bloco PNG)")
+        self.text.setText(f"{fmt_bytes(required)} de {fmt_bytes(limit)} · {status}")
+
     def reset(self) -> None:
         self.set_usage(0, 0)
 

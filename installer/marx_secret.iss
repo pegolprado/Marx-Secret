@@ -6,7 +6,7 @@
 
 #define AppName "MARX SECRET"
 #define AppFullName "MARX SECRET Professional"
-#define AppVersion "1.0.0"
+#define AppVersion "1.1.0"
 #define AppPublisher "MARX SECRET"
 #define AppExe "MARX_SECRET.exe"
 #define AppSlogan "PRIVACIDADE. SEGURANÇA. INTELIGÊNCIA."

@@ -13,7 +13,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Callable, TypeVar
 
-from ..core import analysis, compare, crypto, imageio, payload, stego
+from ..core import analysis, compare, crypto, imageio, payload, pngchunk, stego
 from ..core.errors import (
     AuthenticationError,
     CorruptedDataError,
@@ -45,6 +45,14 @@ class HideOptions:
     max_payload_bytes: int = payload.DEFAULT_MAX_PAYLOAD
     min_password_length: int = 8
     require_password: bool = True
+    mode: str = "auto"  # "auto" | "lsb" | "estendido"
+
+
+MODE_LABELS = {
+    "auto": "Automático (LSB quando couber; senão capacidade estendida)",
+    "lsb": "LSB nos pixels – máxima discrição, capacidade limitada",
+    "estendido": "Capacidade estendida – bloco PNG criptografado, sem limite de resolução",
+}
 
 
 @dataclass
@@ -61,6 +69,7 @@ class HideResult:
     output_sha256: str
     payload_sha256: str
     duration_ms: int
+    mode: str = "lsb"
 
 
 @dataclass
@@ -73,6 +82,7 @@ class ExtractResult:
     payload_sha256: str
     integrity_ok: bool
     duration_ms: int
+    mode: str = "lsb"
 
 
 @dataclass
@@ -176,21 +186,43 @@ class MarxSecretService:
             )
             info = payload.inspect_container(container)
             rec.compressed = info.compressed
-            out_img = stego.embed(img, container, opts.bits_per_channel, opts.scattered,
-                                  opts.password)
-            imageio.save_image(out_img, output_path)
-            # verificação pós-gravação: relê o arquivo e confirma o conteúdo
-            check_img = imageio.load_image(output_path)
-            recovered, _ = stego.extract(check_img, opts.password)
+            lsb_cap = stego.capacity_bytes(img, opts.bits_per_channel)
+            mode = opts.mode
+            if mode == "auto":
+                mode = "lsb" if len(container) <= lsb_cap else "estendido"
+            if mode == "estendido":
+                if Path(output_path).suffix.lower() != ".png":
+                    raise InvalidInputError(
+                        "A capacidade estendida exige saída em PNG. Altere a extensão do "
+                        "arquivo de saída para .png.")
+                # pixels idênticos ao original; contêiner em blocos PNG privados
+                imageio.save_image(img, output_path)
+                pngchunk.embed(output_path, container)
+                recovered = pngchunk.extract(output_path)
+                imageio.load_image(output_path)  # confirma que o PNG continua válido
+                cap = payload.HARD_MAX_PAYLOAD
+                rec.bits_per_channel = 0
+                rec.scattered = False
+            else:
+                out_img = stego.embed(img, container, opts.bits_per_channel, opts.scattered,
+                                      opts.password)
+                imageio.save_image(out_img, output_path)
+                # verificação pós-gravação: relê o arquivo e confirma o conteúdo
+                check_img = imageio.load_image(output_path)
+                recovered, _ = stego.extract(check_img, opts.password)
+                cap = lsb_cap
             if not crypto.constant_time_equals(recovered, container):
                 raise MarxSecretError("Falha na verificação pós-gravação da imagem.")
             out_sha = crypto.sha256_file(output_path)
             rec.output_sha256 = out_sha
-            cap = stego.capacity_bytes(img, opts.bits_per_channel)
-            rec.message = (
-                f"{len(container)} de {cap} bytes utilizados "
-                f"({100.0 * len(container) / cap:.2f}%)"
-            )
+            if mode == "estendido":
+                rec.message = (f"Capacidade estendida (bloco PNG): {len(container)} bytes "
+                               f"armazenados")
+            else:
+                rec.message = (
+                    f"LSB: {len(container)} de {cap} bytes utilizados "
+                    f"({100.0 * len(container) / cap:.2f}%)"
+                )
             return HideResult(
                 output_path=str(output_path),
                 payload_size=len(data.data),
@@ -199,11 +231,12 @@ class MarxSecretService:
                 usage_pct=100.0 * len(container) / cap,
                 encrypted=info.encrypted,
                 compressed=info.compressed,
-                bits_per_channel=opts.bits_per_channel,
-                scattered=opts.scattered,
+                bits_per_channel=opts.bits_per_channel if mode == "lsb" else 0,
+                scattered=opts.scattered if mode == "lsb" else False,
                 output_sha256=out_sha,
                 payload_sha256=data.sha256,
                 duration_ms=int((time.perf_counter() - t0) * 1000),
+                mode=mode,
             )
 
         return self._run(rec, work)
@@ -228,17 +261,24 @@ class MarxSecretService:
 
         def work() -> ExtractResult:
             t0 = time.perf_counter()
+            imageio.validate_image_path(image_path)
             rec.input_sha256 = crypto.sha256_file(image_path)
-            img = imageio.load_image(image_path)
-            container, header = stego.extract(img, password or None)
-            rec.bits_per_channel = header.layout.bits_per_channel
-            rec.scattered = header.layout.scattered
+            header = None
+            mode = "lsb"
+            if pngchunk.has_extended(image_path):
+                container = pngchunk.extract(image_path)
+                mode = "estendido"
+            else:
+                img = imageio.load_image(image_path)
+                container, header = stego.extract(img, password or None)
+                rec.bits_per_channel = header.layout.bits_per_channel
+                rec.scattered = header.layout.scattered
             try:
                 data, info = payload.open_container(container, password or None,
                                                     max_payload_bytes)
             except (CorruptedDataError, IntegrityError, PayloadTooLargeError) as exc:
                 # No modo disperso, senha errada leva a posições erradas e dados aleatórios.
-                if header.layout.scattered:
+                if header is not None and header.layout.scattered:
                     raise AuthenticationError() from exc
                 raise
             rec.operation = (
@@ -248,16 +288,18 @@ class MarxSecretService:
             rec.payload_size = len(data.data)
             rec.encrypted = info.encrypted
             rec.compressed = info.compressed
-            rec.message = "Integridade SHA-256 verificada"
+            rec.message = ("Integridade SHA-256 verificada"
+                           + (" · capacidade estendida" if mode == "estendido" else ""))
             return ExtractResult(
                 payload=data,
                 encrypted=info.encrypted,
                 compressed=info.compressed,
-                bits_per_channel=header.layout.bits_per_channel,
-                scattered=header.layout.scattered,
+                bits_per_channel=header.layout.bits_per_channel if header else 0,
+                scattered=header.layout.scattered if header else False,
                 payload_sha256=data.sha256,
                 integrity_ok=True,
                 duration_ms=int((time.perf_counter() - t0) * 1000),
+                mode=mode,
             )
 
         return self._run(rec, work)

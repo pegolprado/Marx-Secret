@@ -197,8 +197,9 @@ class AnalysisPage(Page):
         if sig.detected:
             rows += [
                 ("Dados armazenados", fmt_bytes(sig.stored_bytes or 0)),
-                ("Layout", f"{sig.bits_per_channel} bit(s)/canal · "
-                           f"{'dispersa' if sig.scattered else 'sequencial'}"),
+                ("Layout", "Capacidade estendida (blocos PNG)" if sig.mode == "estendido" else
+                 f"{sig.bits_per_channel} bit(s)/canal · "
+                 f"{'dispersa' if sig.scattered else 'sequencial'}"),
                 ("Criptografia", "AES-256-GCM" if sig.encrypted else
                  ("Não" if sig.encrypted is not None else "—")),
             ]

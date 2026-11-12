@@ -14,7 +14,7 @@ from dataclasses import dataclass, field
 import numpy as np
 from PIL import Image
 
-from . import crypto, imageio, payload, stego
+from . import crypto, imageio, payload, pngchunk, stego
 from .errors import MarxSecretError
 
 CHANNELS = ("Vermelho", "Verde", "Azul")
@@ -41,6 +41,7 @@ class SignatureInfo:
     encrypted: bool | None = None
     compressed: bool | None = None
     kdf: str | None = None
+    mode: str = "lsb"  # "lsb" | "estendido"
 
 
 @dataclass
@@ -143,6 +144,24 @@ def lsb_plane(img: Image.Image, channel: int | None = None) -> Image.Image:
     return Image.fromarray(bits.astype(np.uint8))
 
 
+def detect_extended(path: str) -> SignatureInfo | None:
+    """Detecta conteúdo em capacidade estendida (blocos PNG ``mxSc``)."""
+    if not pngchunk.has_extended(path):
+        return None
+    info = SignatureInfo(True, mode="estendido", scattered=False,
+                         stored_bytes=pngchunk.stored_size(path))
+    try:
+        cinfo = payload.inspect_container(pngchunk.extract(path))
+        info.encrypted = cinfo.encrypted
+        info.compressed = cinfo.compressed
+        if cinfo.kdf:
+            k = cinfo.kdf
+            info.kdf = f"Argon2id t={k.time_cost}, m={k.memory_kib // 1024} MiB, p={k.parallelism}"
+    except MarxSecretError:
+        pass
+    return info
+
+
 def detect_signature(img: Image.Image) -> SignatureInfo:
     try:
         header = stego.read_header(img)
@@ -198,7 +217,7 @@ def analyze_image(path: str) -> AnalysisResult:
         n = max(1, flat.size * pct // 100)
         sequence.append((pct, chi_square_probability(flat[:n])))
 
-    signature = detect_signature(img)
+    signature = detect_extended(path) or detect_signature(img)
     score, label, findings = _score(channels, overall, sequence, signature, path)
     return AnalysisResult(
         path=str(path),
@@ -227,6 +246,9 @@ def _score(channels, overall, sequence, signature, path) -> tuple[int, str, list
     if signature.detected:
         score = 100
         findings.append("Assinatura MARX SECRET detectada: a imagem contém conteúdo oculto.")
+        if signature.mode == "estendido":
+            findings.append("Conteúdo em capacidade estendida (blocos PNG privados); "
+                            "os pixels não foram alterados.")
         if signature.encrypted:
             findings.append("O conteúdo está protegido por AES-256-GCM.")
     first = sequence[0][1] if sequence else 0.0

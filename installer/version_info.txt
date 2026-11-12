@@ -1,8 +1,8 @@
 # Metadados do executável Windows (PyInstaller)
 VSVersionInfo(
   ffi=FixedFileInfo(
-    filevers=(1, 0, 0, 0),
-    prodvers=(1, 0, 0, 0),
+    filevers=(1, 1, 0, 0),
+    prodvers=(1, 1, 0, 0),
     mask=0x3f,
     flags=0x0,
     OS=0x40004,
@@ -16,12 +16,12 @@ VSVersionInfo(
         '041604B0',
         [StringStruct('CompanyName', 'MARX SECRET'),
          StringStruct('FileDescription', 'MARX SECRET Professional'),
-         StringStruct('FileVersion', '1.0.0.0'),
+         StringStruct('FileVersion', '1.1.0.0'),
          StringStruct('InternalName', 'MARX_SECRET'),
          StringStruct('LegalCopyright', '© 2026 MARX SECRET. Todos os direitos reservados.'),
          StringStruct('OriginalFilename', 'MARX_SECRET.exe'),
          StringStruct('ProductName', 'MARX SECRET'),
-         StringStruct('ProductVersion', '1.0.0'),
+         StringStruct('ProductVersion', '1.1.0'),
          StringStruct('Comments', 'PRIVACIDADE. SEGURANÇA. INTELIGÊNCIA.')])
     ]),
     VarFileInfo([VarStruct('Translation', [0x0416, 1200])])

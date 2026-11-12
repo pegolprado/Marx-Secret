@@ -21,6 +21,7 @@ from PySide6.QtWidgets import (
 
 from ... import APP_COMMERCIAL_NAME, APP_DESCRIPTION, APP_NAME, APP_SLOGAN, __version__
 from ...core import crypto, paths
+from ...services.operations import MODE_LABELS
 from ...core.secure_delete import cleanup_stale_temp
 from ..icons import logo_pixmap
 from ..widgets import BannerLabel, Card, Page, PathSelector, button, confirm, label
@@ -75,6 +76,10 @@ class SettingsPage(Page):
         # esteganografia
         st = Card("Esteganografia (padrões)")
         f3 = QFormLayout()
+        self.embed_mode = QComboBox()
+        for k, v in MODE_LABELS.items():
+            self.embed_mode.addItem(v, k)
+        f3.addRow("Modo de ocultação:", self.embed_mode)
         self.bpc = QComboBox()
         for n in (1, 2, 3):
             self.bpc.addItem(f"{n} bit(s) por canal", n)
@@ -132,6 +137,7 @@ class SettingsPage(Page):
         self.passes.setValue(int(s["secure_delete_passes"]))
         self.confirm_delete.setChecked(bool(s["confirm_secure_delete"]))
         set_combo(self.bpc, int(s["bits_per_channel"]))
+        set_combo(self.embed_mode, s.get("embed_mode", "auto"))
         self.scattered.setChecked(bool(s["scattered"]))
         self.compress.setChecked(bool(s["compress"]))
         self.max_mb.setValue(int(s["max_payload_mb"]))
@@ -155,6 +161,7 @@ class SettingsPage(Page):
             "secure_delete_passes": self.passes.value(),
             "confirm_secure_delete": self.confirm_delete.isChecked(),
             "bits_per_channel": self.bpc.currentData(),
+            "embed_mode": self.embed_mode.currentData(),
             "scattered": self.scattered.isChecked(),
             "compress": self.compress.isChecked(),
             "max_payload_mb": self.max_mb.value(),

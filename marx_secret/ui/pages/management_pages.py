@@ -22,7 +22,7 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
-from ...core import crypto, imageio, stego
+from ...core import crypto, imageio, pngchunk, stego
 from ...core.errors import MarxSecretError
 from ...data.database import OPERATION_LABELS
 from ...reports import csv_report, pdf_report
@@ -362,7 +362,10 @@ class FilesPage(Page):
             st = e.stat()
             ext = Path(e.name).suffix.lower()
             flag = "—"
-            if ext in imageio.SUPPORTED_OUTPUT_EXT and st.st_size < 60 * 1024 * 1024:
+            if ext == ".png" and pngchunk.has_extended(e.path):
+                flag = "Contém conteúdo (estendido)"
+                marx += 1
+            elif ext in imageio.SUPPORTED_OUTPUT_EXT and st.st_size < 60 * 1024 * 1024:
                 try:
                     if stego.has_signature(imageio.load_image(e.path)):
                         flag = "Contém conteúdo"

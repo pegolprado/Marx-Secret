@@ -47,11 +47,11 @@ class AppContext(QObject):
         return paths.default_output_dir()
 
     def max_payload_bytes(self) -> int:
-        mb = int(self.setting("max_payload_mb") or 64)
+        mb = int(self.setting("max_payload_mb") or 256)
         return min(mb * 1024 * 1024, payload.HARD_MAX_PAYLOAD)
 
     def hide_options(self, password: str | None, bits_per_channel: int, scattered: bool,
-                     compress: bool) -> HideOptions:
+                     compress: bool, mode: str | None = None) -> HideOptions:
         return HideOptions(
             password=password or None,
             bits_per_channel=bits_per_channel,
@@ -61,6 +61,7 @@ class AppContext(QObject):
             max_payload_bytes=self.max_payload_bytes(),
             min_password_length=int(self.setting("min_password_length")),
             require_password=bool(self.setting("require_password")),
+            mode=mode or self.setting("embed_mode") or "auto",
         )
 
     def notify_history(self) -> None:

@@ -78,6 +78,7 @@ def test_password_policy(service, cover, tmp_path):
 def test_capacity_error_and_estimate(service, cover, tmp_path, opts):
     big = tmp_path / "grande.bin"
     big.write_bytes(os.urandom(50_000))
+    opts.mode = "lsb"
     with pytest.raises(CapacityError):
         service.hide_file(cover, str(tmp_path / "s.png"), str(big), opts)
     est = service.estimate(cover, 50_000, 1, True, "grande.bin")

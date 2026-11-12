@@ -21,10 +21,10 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
-from ...core import imageio, stego
+from ...core import imageio, payload as payload_mod, pngchunk, stego
 from ...core.errors import MarxSecretError
 from ...core.payload import Payload, PayloadKind
-from ...services.operations import container_overhead
+from ...services.operations import MODE_LABELS, container_overhead
 from ..widgets import (
     CapacityMeter,
     Card,
@@ -110,6 +110,15 @@ class HidePage(Page):
         prot.add(self.password)
         form = QFormLayout()
         form.setLabelAlignment(Qt.AlignmentFlag.AlignLeft)
+        self.mode = QComboBox()
+        for k, v in MODE_LABELS.items():
+            self.mode.addItem(v, k)
+        self.mode.setToolTip(
+            "LSB: o conteúdo fica nos pixels (invisível, capacidade limitada pela resolução).\n"
+            "Capacidade estendida: o conteúdo criptografado fica em blocos privados do PNG; os "
+            "pixels não mudam e o tamanho do arquivo cresce conforme o conteúdo.")
+        self.mode.currentIndexChanged.connect(self._refresh)
+        form.addRow("Modo:", self.mode)
         self.bpc = QComboBox()
         for k, v in BPC_LABELS.items():
             self.bpc.addItem(v, k)
@@ -164,6 +173,9 @@ class HidePage(Page):
 
     # ------------------------------------------------------------------
     def apply_settings(self) -> None:
+        midx = self.mode.findData(self.ctx.setting("embed_mode") or "auto")
+        if midx >= 0:
+            self.mode.setCurrentIndex(midx)
         bpc = int(self.ctx.setting("bits_per_channel") or 1)
         idx = self.bpc.findData(bpc)
         if idx >= 0:
@@ -209,12 +221,20 @@ class HidePage(Page):
         self.password.setEnabled(encrypted)
         self.scattered.setEnabled(encrypted)
         size, name = self._payload_size()
+        mode = self.mode.currentData()
+        self.bpc.setEnabled(mode != "estendido")
+        self.scattered.setEnabled(encrypted and mode != "estendido")
         cover = self.cover.path()
+        required = size + container_overhead(encrypted, name)
         if cover:
             try:
                 info = imageio.image_info(cover)
                 cap = stego.capacity_for_size(info.width, info.height, self.bpc.currentData())
-                self.meter.set_usage(size + container_overhead(encrypted, name), cap)
+                if mode == "estendido" or (mode == "auto" and required > cap):
+                    self.meter.set_extended(required, payload_mod.HARD_MAX_PAYLOAD,
+                                            self.ctx.max_payload_bytes())
+                else:
+                    self.meter.set_usage(required, cap)
             except MarxSecretError:
                 self.meter.reset()
         else:
@@ -229,6 +249,12 @@ class HidePage(Page):
             return "Selecione um arquivo válido para ocultar."
         if not self.output.path():
             return "Informe o arquivo de saída."
+        if self.kind == PayloadKind.FILE:
+            size = os.path.getsize(self.secret_file.path())
+            if size > self.ctx.max_payload_bytes():
+                return (f"O arquivo ({fmt_bytes(size)}) excede o limite configurado de "
+                        f"{fmt_bytes(self.ctx.max_payload_bytes())} (altere em Configurações; "
+                        f"máximo de 256 MB).")
         if self.encrypt.isChecked():
             if not self.password.password():
                 return "Informe a senha."
@@ -246,7 +272,7 @@ class HidePage(Page):
             return
         pwd = self.password.password() if self.encrypt.isChecked() else None
         opts = self.ctx.hide_options(pwd, self.bpc.currentData(), self.scattered.isChecked(),
-                                     self.compress.isChecked())
+                                     self.compress.isChecked(), self.mode.currentData())
         cover, out = self.cover.path(), self.output.path()
         svc = self.ctx.service
         if self.kind == PayloadKind.TEXT:
@@ -272,11 +298,13 @@ class HidePage(Page):
             f"<b>Conteúdo ocultado com sucesso.</b><br>"
             f"Arquivo: {res.output_path}<br>"
             f"Conteúdo: {fmt_bytes(res.payload_size)} · contêiner {fmt_bytes(res.container_size)}"
-            f" · uso {res.usage_pct:.2f}% da capacidade<br>"
+            + (f" · uso {res.usage_pct:.2f}% da capacidade<br>" if res.mode == "lsb" else "<br>")
+            +
             f"Criptografia: {'AES-256-GCM + Argon2id' if res.encrypted else 'não'} · "
             f"Compressão: {'sim' if res.compressed else 'não'} · "
-            f"{res.bits_per_channel} bit(s)/canal · "
-            f"{'dispersa' if res.scattered else 'sequencial'}<br>"
+            + (f"{res.bits_per_channel} bit(s)/canal · "
+               f"{'dispersa' if res.scattered else 'sequencial'}<br>" if res.mode == "lsb"
+               else "capacidade estendida (blocos PNG; pixels inalterados)<br>") +
             f"SHA-256 da imagem: <code>{res.output_sha256}</code><br>"
             f"Verificação pós-gravação: aprovada · {res.duration_ms} ms"
         )
@@ -414,6 +442,15 @@ class ExtractPage(Page):
         if not path:
             self.signature.hide()
             return
+        if pngchunk.has_extended(path):
+            self.signature.setObjectName("Badge")
+            self.signature.setText("Assinatura MARX SECRET detectada · capacidade estendida "
+                                   f"({fmt_bytes(pngchunk.stored_size(path))})")
+            self.signature.setWordWrap(True)
+            self.signature.style().unpolish(self.signature)
+            self.signature.style().polish(self.signature)
+            self.signature.show()
+            return
         try:
             header = stego.read_header(imageio.load_image(path))
             mode = "dispersa – requer senha" if header.layout.scattered else "sequencial"
@@ -451,8 +488,9 @@ class ExtractPage(Page):
         self.meta.setText(
             f"Integridade SHA-256 verificada ✓ · Criptografia: "
             f"{'AES-256-GCM' if res.encrypted else 'nenhuma'} · "
-            f"{res.bits_per_channel} bit(s)/canal · "
-            f"{'dispersa' if res.scattered else 'sequencial'} · {res.duration_ms} ms")
+            + (f"{res.bits_per_channel} bit(s)/canal · "
+               f"{'dispersa' if res.scattered else 'sequencial'}" if res.mode == "lsb"
+               else "capacidade estendida") + f" · {res.duration_ms} ms")
         if res.payload.kind == PayloadKind.TEXT:
             self.text_view.setPlainText(res.payload.text)
             self.text_card.show()

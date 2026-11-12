@@ -25,7 +25,7 @@ ocultação e recuperação de mensagens e arquivos em imagens.</p>
 | **Gerenciamento de arquivos** | Identificação de imagens com conteúdo, hashes e exclusão segura |
 | **Configurações** | Tema escuro/claro, perfil Argon2id, densidade LSB, limites, privacidade |
 
-Recursos avançados: 1–3 bits por canal, **distribuição dispersa** dos bits guiada pela senha,
+Recursos avançados: **capacidade estendida** (conteúdo criptografado em blocos privados do PNG, pixels inalterados, até 256 MB, ativada automaticamente quando o conteúdo não cabe nos pixels), 1–3 bits por canal, **distribuição dispersa** dos bits guiada pela senha,
 compressão automática, verificação pós-gravação, canal alfa preservado, limpeza automática da
 área de transferência, autodiagnóstico offline (`--self-test`), modo portátil.
 

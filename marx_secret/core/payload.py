@@ -39,7 +39,7 @@ FLAG_ENCRYPTED = 0x01
 FLAG_COMPRESSED = 0x02
 
 HARD_MAX_PAYLOAD = 256 * 1024 * 1024  # limite absoluto (256 MiB)
-DEFAULT_MAX_PAYLOAD = 64 * 1024 * 1024  # limite padrão configurável (64 MiB)
+DEFAULT_MAX_PAYLOAD = 256 * 1024 * 1024  # limite padrão configurável (256 MiB)
 MAX_NAME_LEN = 255
 
 _INNER_FIXED = struct.Struct(">BH")
@@ -134,7 +134,7 @@ def _build_inner(payload: Payload, compress: bool) -> tuple[bytes, bool]:
     data = payload.data
     used_compression = False
     if compress:
-        compressed = zlib.compress(data, 9)
+        compressed = zlib.compress(data, 9 if len(data) <= 8 * 1024 * 1024 else 6)
         if len(compressed) < len(data):
             data = compressed
             used_compression = True

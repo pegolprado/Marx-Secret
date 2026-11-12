@@ -293,8 +293,8 @@ def build_story() -> list:
         "Digite a <b>mensagem</b>.",
         "Informe e confirme a <b>senha</b> (o botão de dado gera uma senha forte). O medidor indica "
         "a força da senha.",
-        "Escolha a <b>densidade</b> (1, 2 ou 3 bits por canal), a <b>distribuição dispersa</b> e a "
-        "<b>compressão</b>.",
+        "Escolha o <b>modo</b> (Automático, LSB ou Capacidade estendida), a <b>densidade</b> "
+        "(1, 2 ou 3 bits por canal), a <b>distribuição dispersa</b> e a <b>compressão</b>.",
         "Confira o <b>arquivo de saída</b> (sugerido automaticamente) e a barra de "
         "<b>uso da capacidade</b>.",
         "Clique em <b>Ocultar mensagem</b>.",
@@ -303,7 +303,19 @@ def build_story() -> list:
             "Após a gravação, o MARX SECRET relê o arquivo e confirma que o conteúdo pode ser "
             "recuperado (verificação pós-gravação).", NOTE)]
     s += shot("02_ocultar_mensagem", "Ocultar mensagem")
-    s += [table([["Densidade", "Capacidade", "Discrição"],
+    s += [P("7.1 Modos de ocultação e capacidade", H2),
+          P("<b>LSB nos pixels</b>: o conteúdo é gravado nos bits menos significativos dos pixels. "
+            "É invisível e não altera o tamanho do arquivo, mas a capacidade depende da "
+            "resolução (tabela abaixo)."),
+          P("<b>Capacidade estendida</b>: o conteúdo criptografado é gravado em blocos privados "
+            "do próprio arquivo PNG. Os pixels ficam idênticos aos da imagem original e o arquivo "
+            "continua abrindo normalmente em qualquer visualizador; a capacidade deixa de "
+            "depender da resolução (limite de 256 MB por conteúdo) e o tamanho do arquivo cresce "
+            "na mesma proporção do conteúdo. Exige saída em PNG."),
+          P("<b>Automático</b> (padrão): usa LSB quando o conteúdo cabe nos pixels e passa para a "
+            "capacidade estendida quando não cabe. A barra de capacidade indica qual modo será "
+            "usado.", NOTE),
+          table([["Densidade", "Capacidade", "Discrição"],
                  ["1 bit/canal", "0,375 byte por pixel (ex.: 1920×1080 = aprox. 759 KB)", "Máxima"],
                  ["2 bits/canal", "dobro da anterior (aprox. 1,5 MB em Full HD)", "Alta"],
                  ["3 bits/canal", "triplo (aprox. 2,2 MB em Full HD)", "Moderada"]], [32, 98, 40])]
@@ -325,8 +337,8 @@ def build_story() -> list:
     s += [PageBreak(), P("9. Ocultar arquivo", H1),
           P("Funciona como a ocultação de mensagens, mas o conteúdo é um arquivo. O nome original "
             "do arquivo é preservado (dentro do conteúdo criptografado) para a recuperação. "
-            "O limite padrão é de 64 MB por arquivo (configurável até 256 MB), sujeito à capacidade "
-            "da imagem.")]
+            "O limite é de 256 MB por arquivo (configurável). Arquivos maiores que a capacidade "
+            "LSB da imagem são gravados automaticamente em capacidade estendida (seção 7.1).")]
     s += shot("04_ocultar_arquivo", "Ocultar arquivo")
     s += [P("10. Recuperar arquivo", H1)]
     s += steps([
@@ -405,7 +417,8 @@ def build_story() -> list:
                  ["Densidade padrão", "Bits por canal", "1"],
                  ["Distribuição dispersa", "Posições pseudoaleatórias derivadas da senha", "Sim"],
                  ["Comprimir conteúdos", "Compressão zlib antes de criptografar", "Sim"],
-                 ["Tamanho máximo do conteúdo", "Limite por mensagem/arquivo", "64 MB"],
+                 ["Modo de ocultação", "Automático, LSB ou Capacidade estendida", "Automático"],
+                 ["Tamanho máximo do conteúdo", "Limite por mensagem/arquivo", "256 MB"],
                  ["Pasta de saída padrão", "Onde as imagens e relatórios são sugeridos",
                   "Documentos\\MARX SECRET"],
                  ["Histórico", "Registrar operações (somente metadados)", "Sim"]], [48, 82, 40])]
@@ -454,7 +467,8 @@ def build_story() -> list:
                  ["Falha na verificação de integridade SHA-256",
                   "O conteúdo foi corrompido. Obtenha novamente a imagem original."],
                  ["A imagem não possui capacidade suficiente",
-                  "Use uma imagem maior, aumente a densidade (bits por canal) ou ative a compressão."],
+                  "Selecione o modo Automático ou Capacidade estendida (saída PNG), ou use uma "
+                  "imagem maior / mais bits por canal."],
                  ["A imagem está corrompida ou não pôde ser lida",
                   "O arquivo está danificado ou não é uma imagem suportada."],
                  ["Aviso do Windows SmartScreen",

@@ -13,7 +13,7 @@ APP_DESCRIPTION = (
 )
 APP_ORGANIZATION = "MARX SECRET"
 APP_ID = "marx-secret"
-__version__ = "1.0.0"
+__version__ = "1.1.0"
 
 __all__ = [
     "APP_NAME",

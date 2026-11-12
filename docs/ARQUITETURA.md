@@ -46,6 +46,7 @@
 | `test_analysis_compare.py` | estatísticas, qui-quadrado, assinatura, PSNR/SSIM |
 | `test_reports.py` | PDF e CSV, injeção de fórmulas |
 | `test_gui.py` | navegação, botões conectados, fluxos de interface, temas |
+| `test_extended.py` | capacidade estendida (blocos PNG), modo automático, corrupção |
 | `test_paths_app.py` | modo portátil, recursos, CLI, ausência de nomes antigos |
 
 No CI Windows também são testados: autodiagnóstico do executável, instalação silenciosa,

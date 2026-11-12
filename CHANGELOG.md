@@ -1,5 +1,11 @@
 # Histórico de versões
 
+## 1.1.0 — 2026-11-12
+- **Capacidade estendida**: conteúdo criptografado em blocos privados do PNG, sem depender da
+  resolução da imagem (até 256 MB); modo Automático escolhe LSB ou estendido.
+- Limite padrão de conteúdo elevado para 256 MB; compressão mais rápida para arquivos grandes.
+- Banner oficial MARX SECRET no dashboard, abertura, Sobre, relatórios e manual.
+
 ## 1.0.0 — 2026-11-12
 - Primeira versão do **MARX SECRET Professional**.
 - Ocultação/extração de mensagens e arquivos (LSB 1–3 bits, sequencial ou disperso).

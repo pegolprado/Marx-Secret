@@ -30,13 +30,22 @@ interno = tipo(1) | len_nome(2) | nome | tamanho(8) | SHA-256(32) | dados[zlib]
 Na imagem, um cabeçalho de 17 bytes (assinatura `MXS§`, layout, tamanho, semente) é gravado a
 1 bit/canal nos primeiros 136 valores RGB; o corpo é gravado a partir daí, sequencial ou disperso.
 
+## Capacidade estendida
+
+Quando o conteúdo não cabe nos pixels (ou por escolha do usuário), o mesmo contêiner criptografado
+é gravado em blocos PNG auxiliares privados `mxSc` (até 16 MiB cada, com índice e total) antes do
+`IEND`. Os pixels não são alterados e o PNG permanece válido. A confidencialidade e a integridade
+são idênticas às do modo LSB (AES-256-GCM + SHA-256, além do CRC de cada bloco). A discrição é
+menor: o tamanho do arquivo cresce e a presença dos blocos é detectável por inspeção da estrutura
+do arquivo (o módulo de análise a reporta).
+
 ## Validações e limites
 
 - Imagem: extensão suportada, arquivo não vazio, ≤ 300 MB, ≤ 100 megapixels (proteção contra
   *decompression bomb*), mínimo de 64 pixels, verificação estrutural pelo Pillow.
 - Saída: somente formatos sem perdas (PNG/BMP/TIFF); gravação atômica (arquivo temporário +
   `os.replace`); verificação pós-gravação relendo o arquivo.
-- Conteúdo: ≤ 64 MB por padrão (configurável até 256 MB); descompressão limitada ao tamanho
+- Conteúdo: ≤ 256 MB (configurável); descompressão limitada ao tamanho
   declarado (proteção contra *zip bomb*).
 - Parâmetros Argon2id lidos do arquivo são limitados (t ≤ 20, m ≤ 1 GiB, p ≤ 16).
 - Nomes recuperados são saneados (sem caminhos, caracteres proibidos ou nomes reservados do
