@@ -141,13 +141,11 @@ QFrame#StatCard:hover {{ border-color: {p.accent}; }}
 QLabel#StatValue {{ font-size: 22pt; font-weight: 800; color: {p.text}; }}
 QLabel#StatLabel {{ color: {p.muted}; font-size: 9pt; font-weight: 600; }}
 QFrame#HeroCard {{
-    border-radius: 16px; border: 1px solid {p.border};
-    background: qlineargradient(x1:0, y1:0, x2:1, y2:1,
-        stop:0 #0F1A16, stop:0.55 #0B1210, stop:1 #06231A);
+    border-radius: 16px; border: 1px solid {p.border}; background: #030409;
 }}
 QLabel#HeroTitle {{ color: #FFFFFF; font-size: 22pt; font-weight: 800; letter-spacing: 1px; }}
 QLabel#HeroText {{ color: #A9B7B1; font-size: 10pt; }}
-QLabel#HeroSlogan {{ color: #34D399; font-weight: 700; letter-spacing: 2px; font-size: 8.5pt; }}
+QLabel#HeroSlogan {{ color: #D4AF37; font-weight: 700; letter-spacing: 2px; font-size: 8.5pt; }}
 
 /* ---------- Entradas ---------- */
 QLineEdit, QPlainTextEdit, QTextEdit, QSpinBox, QComboBox, QDateEdit {{

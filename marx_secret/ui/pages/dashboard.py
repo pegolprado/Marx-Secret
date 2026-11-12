@@ -18,10 +18,9 @@ from PySide6.QtWidgets import (
     QFrame,
 )
 
-from ... import APP_NAME, APP_SLOGAN, __version__
+from ... import APP_SLOGAN, __version__
 from ...core import crypto, paths
-from ..icons import logo_pixmap
-from ..widgets import BarChart, Card, Page, StatCard, button, fmt_bytes, label
+from ..widgets import BannerLabel, BarChart, Card, Page, StatCard, button, fmt_bytes, label
 
 _WEEKDAYS = ["Seg", "Ter", "Qua", "Qui", "Sex", "Sáb", "Dom"]
 
@@ -37,15 +36,15 @@ class DashboardPage(Page):
         # --- destaque
         hero = QFrame()
         hero.setObjectName("HeroCard")
-        hl = QHBoxLayout(hero)
-        hl.setContentsMargins(28, 24, 28, 24)
-        hl.setSpacing(24)
-        logo = QLabel()
-        logo.setPixmap(logo_pixmap(112))
-        hl.addWidget(logo)
+        hv = QVBoxLayout(hero)
+        hv.setContentsMargins(1, 1, 1, 22)
+        hv.setSpacing(10)
+        hv.addWidget(BannerLabel(1200))
+        hl = QHBoxLayout()
+        hl.setContentsMargins(28, 0, 28, 0)
+        hv.addLayout(hl)
         txt = QVBoxLayout()
         txt.setSpacing(4)
-        txt.addWidget(label(APP_NAME, "HeroTitle"))
         txt.addWidget(label(APP_SLOGAN, "HeroSlogan"))
         txt.addWidget(label("Esteganografia profissional com criptografia AES-256-GCM, "
                             "derivação de chaves Argon2id e verificação de integridade SHA-256. "

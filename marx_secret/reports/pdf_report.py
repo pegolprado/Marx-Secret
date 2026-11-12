@@ -34,14 +34,34 @@ from ..data.database import OPERATION_LABELS, OperationRecord
 EMERALD = colors.HexColor("#10B981")
 EMERALD_DARK = colors.HexColor("#047857")
 GRAPHITE = colors.HexColor("#1F2328")
-BLACK = colors.HexColor("#0B0D0F")
+BLACK = colors.HexColor("#030409")
 LIGHT_ROW = colors.HexColor("#F1F5F3")
 MUTED = colors.HexColor("#5B6470")
+GOLD = colors.HexColor("#D4AF37")
 
 PRIVACY_NOTE = (
     "Documento gerado localmente e offline. Por política de segurança, este relatório "
     "não contém senhas, chaves nem conteúdos secretos."
 )
+
+
+def banner_path() -> str | None:
+    from ..core.paths import resource_dir
+
+    p = resource_dir() / "banner.jpg"
+    return str(p) if p.exists() else None
+
+
+BANNER_RATIO = 2410 / 432
+
+
+def draw_banner(c, x: float, y: float, height: float) -> bool:
+    """Desenha o banner oficial MARX SECRET (canto inferior esquerdo em x, y)."""
+    path = banner_path()
+    if not path:
+        return False
+    c.drawImage(path, x, y, width=height * BANNER_RATIO, height=height)
+    return True
 
 
 def draw_logo(c, x: float, y: float, size: float) -> None:
@@ -99,18 +119,19 @@ class _Decorator:
         c.rect(0, h - 26 * mm, w, 26 * mm, fill=1, stroke=0)
         c.setFillColor(EMERALD)
         c.rect(0, h - 27 * mm, w, 1 * mm, fill=1, stroke=0)
-        draw_logo(c, 12 * mm, h - 23.5 * mm, 20 * mm)
-        c.setFillColor(colors.white)
-        c.setFont("Helvetica-Bold", 17)
-        c.drawString(36 * mm, h - 13 * mm, APP_NAME)
-        c.setFont("Helvetica", 8)
-        c.setFillColor(EMERALD)
-        c.drawString(36 * mm, h - 18.5 * mm, APP_SLOGAN)
+        if not draw_banner(c, 6 * mm, h - 25 * mm, 22 * mm):
+            draw_logo(c, 12 * mm, h - 23.5 * mm, 20 * mm)
+            c.setFillColor(colors.white)
+            c.setFont("Helvetica-Bold", 17)
+            c.drawString(36 * mm, h - 13 * mm, APP_NAME)
         c.setFillColor(colors.white)
         c.setFont("Helvetica-Bold", 10)
         c.drawRightString(w - 12 * mm, h - 13 * mm, self.title)
         c.setFont("Helvetica", 8)
         c.drawRightString(w - 12 * mm, h - 18.5 * mm, f"Gerado em {self.generated}")
+        c.setFillColor(GOLD)
+        c.setFont("Helvetica-Bold", 6.5)
+        c.drawRightString(w - 12 * mm, h - 23 * mm, APP_SLOGAN)
         c.setStrokeColor(colors.HexColor("#D0D5D2"))
         c.line(12 * mm, 14 * mm, w - 12 * mm, 14 * mm)
         c.setFillColor(MUTED)

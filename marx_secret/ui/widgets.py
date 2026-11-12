@@ -621,3 +621,28 @@ class Toast(QFrame):
             self.anim.start()
         except RuntimeError:
             pass
+
+
+class BannerLabel(QLabel):
+    """Exibe o banner oficial ajustado à largura disponível (proporção preservada)."""
+
+    def __init__(self, max_width: int = 1400, parent: QWidget | None = None):
+        super().__init__(parent)
+        self.max_width = max_width
+        self.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
+        self.setMinimumWidth(200)
+        self._update(600)
+
+    def _update(self, width: int) -> None:
+        w = max(200, min(width, self.max_width))
+        pm = icons.banner_pixmap(w)
+        if not pm.isNull():
+            self.setPixmap(pm)
+            self.setFixedHeight(pm.height())
+
+    def resizeEvent(self, e):  # noqa: N802
+        super().resizeEvent(e)
+        target = min(self.width(), self.max_width)
+        if self.pixmap() is None or abs(self.pixmap().width() - target) > 4:
+            self._update(self.width())

@@ -39,7 +39,9 @@ from marx_secret.reports.pdf_report import (  # noqa: E402
     EMERALD_DARK,
     GRAPHITE,
     LIGHT_ROW,
+    GOLD,
     MUTED,
+    draw_banner,
     draw_logo,
 )
 
@@ -95,14 +97,16 @@ class ManualDoc(BaseDocTemplate):
         c.setFillColor(colors.HexColor("#0C2A20"))
         for x in range(0, int(w), 24):
             for y in range(0, int(h), 24):
-                central = 40 * mm < x < w - 40 * mm and 90 * mm < y < 125 * mm
+                central = 90 * mm < y < 210 * mm
                 if (x * 7 + y * 13) % 5 == 0 and not central:
                     c.rect(x, y, 6, 6, fill=1, stroke=0)
-        draw_logo(c, w / 2 - 45 * mm, h - 125 * mm, 90 * mm)
-        c.setFillColor(colors.white)
-        c.setFont("Helvetica-Bold", 38)
-        c.drawCentredString(w / 2, h - 148 * mm, APP_NAME)
-        c.setFillColor(EMERALD)
+        bh = w / (2410 / 432)
+        if not draw_banner(c, 0, h - 95 * mm - bh, bh):
+            draw_logo(c, w / 2 - 45 * mm, h - 125 * mm, 90 * mm)
+            c.setFillColor(colors.white)
+            c.setFont("Helvetica-Bold", 38)
+            c.drawCentredString(w / 2, h - 148 * mm, APP_NAME)
+        c.setFillColor(GOLD)
         c.setFont("Helvetica-Bold", 12)
         c.drawCentredString(w / 2, h - 158 * mm, APP_SLOGAN)
         c.setFillColor(colors.white)
@@ -123,10 +127,11 @@ class ManualDoc(BaseDocTemplate):
         c.rect(0, h - 16 * mm, w, 16 * mm, fill=1, stroke=0)
         c.setFillColor(EMERALD)
         c.rect(0, h - 16.6 * mm, w, 0.6 * mm, fill=1, stroke=0)
-        draw_logo(c, 14 * mm, h - 14 * mm, 12 * mm)
-        c.setFillColor(colors.white)
-        c.setFont("Helvetica-Bold", 11)
-        c.drawString(28 * mm, h - 9.5 * mm, APP_NAME)
+        if not draw_banner(c, 8 * mm, h - 15.5 * mm, 15 * mm):
+            draw_logo(c, 14 * mm, h - 14 * mm, 12 * mm)
+            c.setFillColor(colors.white)
+            c.setFont("Helvetica-Bold", 11)
+            c.drawString(28 * mm, h - 9.5 * mm, APP_NAME)
         c.setFont("Helvetica", 8)
         c.setFillColor(colors.HexColor("#9CA3AF"))
         c.drawRightString(w - 14 * mm, h - 9.5 * mm, "Manual de Instalação e Utilização")

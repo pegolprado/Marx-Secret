@@ -22,7 +22,7 @@ def test_env_override(tmp_path, monkeypatch):
 
 
 def test_resources_exist():
-    for name in ("logo.svg", "check.svg", "marx_secret.ico", "logo_256.png"):
+    for name in ("logo.svg", "check.svg", "marx_secret.ico", "logo_256.png", "banner.jpg"):
         assert (paths.resource_dir() / name).exists()
 
 

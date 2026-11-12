@@ -96,3 +96,15 @@ def app_icon() -> QIcon:
     for s in (16, 24, 32, 48, 64, 128, 256):
         ic.addPixmap(logo_pixmap(s))
     return ic
+
+
+BANNER_RATIO = 2410 / 432
+
+
+@lru_cache(maxsize=16)
+def banner_pixmap(width: int) -> QPixmap:
+    """Banner oficial MARX SECRET (assets/banner.jpg) redimensionado para a largura."""
+    pm = QPixmap(str(resource_dir() / "banner.jpg"))
+    if pm.isNull():
+        return pm
+    return pm.scaledToWidth(max(1, width), Qt.TransformationMode.SmoothTransformation)

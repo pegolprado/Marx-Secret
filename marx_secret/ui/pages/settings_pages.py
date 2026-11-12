@@ -11,6 +11,7 @@ from PySide6.QtWidgets import (
     QCheckBox,
     QComboBox,
     QFormLayout,
+    QFrame,
     QHBoxLayout,
     QLabel,
     QSpinBox,
@@ -22,7 +23,7 @@ from ... import APP_COMMERCIAL_NAME, APP_DESCRIPTION, APP_NAME, APP_SLOGAN, __ve
 from ...core import crypto, paths
 from ...core.secure_delete import cleanup_stale_temp
 from ..icons import logo_pixmap
-from ..widgets import Card, Page, PathSelector, button, confirm, label
+from ..widgets import BannerLabel, Card, Page, PathSelector, button, confirm, label
 
 
 class SettingsPage(Page):
@@ -191,10 +192,16 @@ class AboutPage(Page):
 
     def __init__(self, ctx, parent: QWidget | None = None):
         super().__init__(ctx, parent)
+        banner_card = QFrame()
+        banner_card.setObjectName("HeroCard")
+        bl = QVBoxLayout(banner_card)
+        bl.setContentsMargins(1, 1, 1, 1)
+        bl.addWidget(BannerLabel(1200))
+        self.body.addWidget(banner_card)
         card = Card()
         row = QHBoxLayout()
         logo = QLabel()
-        logo.setPixmap(logo_pixmap(140))
+        logo.setPixmap(logo_pixmap(120))
         row.addWidget(logo)
         col = QVBoxLayout()
         col.addWidget(label(APP_NAME, "PageTitle"))

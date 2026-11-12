@@ -1,8 +1,7 @@
 <p align="center">
-  <img src="marx_secret/assets/logo_256.png" width="140" alt="MARX SECRET">
+  <img src="marx_secret/assets/banner.jpg" alt="MARX SECRET" width="100%">
 </p>
 
-<h1 align="center">MARX SECRET</h1>
 <p align="center"><b>PRIVACIDADE. SEGURANÇA. INTELIGÊNCIA.</b></p>
 <p align="center">MARX SECRET Professional — software profissional de esteganografia digital, criptografia,
 ocultação e recuperação de mensagens e arquivos em imagens.</p>
@@ -31,6 +30,8 @@ compressão automática, verificação pós-gravação, canal alfa preservado, l
 área de transferência, autodiagnóstico offline (`--self-test`), modo portátil.
 
 ## Downloads (entrega)
+
+**Baixe a versão mais recente em [Releases](../../releases/latest).**
 
 | Pacote | Arquivo |
 |---|---|
